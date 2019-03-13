@@ -15,6 +15,8 @@ export class Book {
     @Column({ type: 'date' })
     date: Date;
 
-    @ManyToOne(type => User, user => user.books)
+    @ManyToOne(type => User, user => user.books, {
+        cascade: true
+    })
     user: User;
 }
