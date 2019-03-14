@@ -91,4 +91,24 @@ export default class BookController {
             ctx.body = user;
         }
     }
+
+    public static async deleteUserBook (ctx: BaseContext) {
+
+        const bookRepository: Repository<Book> = getManager().getRepository(Book);
+
+        const bookToRemove: Book = await bookRepository.findOne(
+            {id: ctx.params.id || 0});
+
+        if ( !bookToRemove ) {
+            ctx.status = 400;
+            ctx.body = 'The book you are trying to delete doesn\'t exist in the db';
+            return;
+        } else if ( bookToRemove.id !== ctx.params.userId ) {
+            ctx.status = 400;
+            ctx.body = 'This user haven\'t this book';
+        }
+
+        await bookRepository.remove(bookToRemove);
+        ctx.status = 204;
+    }
 }
