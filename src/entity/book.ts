@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { IsDate } from 'class-validator';
 import { User } from './user';
 
 @Entity()
@@ -12,7 +13,8 @@ export class Book {
     @Column()
     description: string;
 
-    @Column({ type: 'date' })
+    @Column()
+    @IsDate()
     date: Date;
 
     @ManyToOne(type => User, user => user.books, {

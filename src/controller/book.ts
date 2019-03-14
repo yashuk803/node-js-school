@@ -10,7 +10,6 @@ export default class BookController {
     public static async getUserBooks (ctx: BaseContext) {
 
         const userRepository: Repository<User> = getManager().getRepository(User);
-
         const userBooks: User = await userRepository.findOne(
             {id: ctx.params.id || 0},
             {relations: ['books']});
@@ -21,7 +20,6 @@ export default class BookController {
             return;
         }
 
-        // return OK status code and loaded user object
         ctx.status = 200;
         ctx.body = userBooks;
 
@@ -36,10 +34,16 @@ export default class BookController {
         const bookToBeSaved: Book = new Book();
         bookToBeSaved.name = ctx.request.body.name;
         bookToBeSaved.description = ctx.request.body.description;
-        bookToBeSaved.date = ctx.request.body.date || dateformat(new Date(), 'yyyy-mm-dd');
+        bookToBeSaved.date = ctx.request.body.date;
         bookToBeSaved.user = ctx.params.id;
 
-        if(! await userRepository.findOne({ id: ctx.params.id}) ) {
+        const errors: ValidationError[] = await validate(bookToBeSaved);
+
+        if (errors.length > 0) {
+
+            ctx.status = 400;
+            ctx.body = errors;
+        } else if(! await userRepository.findOne({ id: ctx.params.id}) ) {
             ctx.status = 400;
             ctx.body = 'This user doesn\'t in db ';
         } else if ( await bookRepository.findOne({ name: bookToBeSaved.name}) ) {
@@ -59,12 +63,9 @@ export default class BookController {
 
         const bookRepository: Repository<Book> = getManager().getRepository(Book);
 
-        const bookUser = await bookRepository.createQueryBuilder('book')
-            .leftJoinAndSelect('book.user', 'user')
-            .where('user.id = :userId', { userId: ctx.params.userId || 0 })
-            .andWhere('book.id = :id', { id: ctx.params.id || 0 })
-            .getOne();
+        const bookUser = await bookRepository.findOne({ id: ctx.params.id  , user: ctx.params.userId});
 
+        ctx.body = bookUser;
         if (!bookUser) {
             ctx.status = 400;
             ctx.body = 'The user and book doesn\'t exist in the db';
@@ -76,16 +77,13 @@ export default class BookController {
         bookToBeUpdated.name = ctx.request.body.name;
         bookToBeUpdated.description = ctx.request.body.description;
         bookToBeUpdated.date = ctx.request.body.date || dateformat(new Date(), 'yyyy-mm-dd');
-        bookToBeUpdated.user = ctx.params.id;
-
+        bookToBeUpdated.user = ctx.params.userId;
 
         if ( !await bookRepository.findOne(bookToBeUpdated.id) ) {
-            ctx.status = 400;
-            ctx.body = 'The book you are trying to update doesn\'t exist in the db';
-        } else if ( await bookRepository.findOne({ id: Not(Equal(bookToBeUpdated.id)) , name: bookToBeUpdated.name}) ) {
 
             ctx.status = 400;
-            ctx.body = 'The specified book\'s name already exists';
+            ctx.body = 'The book you are trying to update doesn\'t exist in the db';
+
         } else {
 
             const user = await bookRepository.save(bookToBeUpdated);
@@ -94,28 +92,23 @@ export default class BookController {
             ctx.body = user;
         }
     }
+    public static async deleteUserBook (ctx: BaseContext) {
 
-    public static async deleteUser (ctx: BaseContext) {
+        const bookRepository: Repository<Book> = getManager().getRepository(Book);
 
-        // get a user repository to perform operations with user
-        const userRepository = getManager().getRepository(User);
+        const bookToRemove: Book = await bookRepository.findOne(
+            {id: ctx.params.id || 0});
 
-        // find the user by specified id
-        const userToRemove: User = await userRepository.findOne(+ctx.params.id || 0);
-        if (!userToRemove) {
-            // return a BAD REQUEST status code and error message
+        if ( !bookToRemove ) {
             ctx.status = 400;
-            ctx.body = 'The user you are trying to delete doesn\'t exist in the db';
-        } else if (+ctx.state.user.id !== userToRemove.id) {
-            // check user's token id and user id are the same
-            // if not, return a FORBIDDEN status code and error message
-            ctx.status = 403;
-            ctx.body = 'A user can only be deleted by himself';
-        } else {
-            // the user is there so can be removed
-            await userRepository.remove(userToRemove);
-            // return a NO CONTENT status code
-            ctx.status = 204;
+            ctx.body = 'The book you are trying to delete doesn\'t exist in the db';
+            return;
+        } else if ( bookToRemove.id !== ctx.params.userId ) {
+            ctx.status = 400;
+            ctx.body = 'This user haven\'t this book';
         }
+
+        await bookRepository.remove(bookToRemove);
+        ctx.status = 204;
     }
 }

@@ -8,7 +8,6 @@ import * as dotenv from 'dotenv';
 import { createConnection } from 'typeorm';
 import 'reflect-metadata';
 import * as PostgressConnectionStringParser from 'pg-connection-string';
-
 import { logger } from './logging';
 import { config } from './config';
 import { router } from './routes';
