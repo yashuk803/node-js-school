@@ -57,4 +57,38 @@ export default class BookController {
             ctx.body = book;
         }
     }
+
+    public static async updateUserBook (ctx: BaseContext) {
+
+        const bookRepository: Repository<Book> = getManager().getRepository(Book);
+
+        const bookUser = await bookRepository.findOne({ id: ctx.params.id  , user: ctx.params.userId});
+
+        ctx.body = bookUser;
+        if (!bookUser) {
+            ctx.status = 400;
+            ctx.body = 'The user and book doesn\'t exist in the db';
+            return;
+        }
+
+        const bookToBeUpdated: Book = new Book();
+        bookToBeUpdated.id = bookUser.id;
+        bookToBeUpdated.name = ctx.request.body.name;
+        bookToBeUpdated.description = ctx.request.body.description;
+        bookToBeUpdated.date = ctx.request.body.date || dateformat(new Date(), 'yyyy-mm-dd');
+        bookToBeUpdated.user = ctx.params.userId;
+
+        if ( !await bookRepository.findOne(bookToBeUpdated.id) ) {
+
+            ctx.status = 400;
+            ctx.body = 'The book you are trying to update doesn\'t exist in the db';
+
+        } else {
+
+            const user = await bookRepository.save(bookToBeUpdated);
+
+            ctx.status = 201;
+            ctx.body = user;
+        }
+    }
 }
