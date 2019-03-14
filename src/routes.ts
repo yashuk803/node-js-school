@@ -14,4 +14,5 @@ router.post('/users', controller.user.createUser);
 router.put('/users/:id', controller.user.updateUser);
 router.delete('/users/:id/books', controller.user.deleteUser);
 
+router.get('/users/:id/books/', controller.book.getUserBooks);
 export { router };
