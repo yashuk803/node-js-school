@@ -24,4 +24,37 @@ export default class BookController {
         ctx.body = userBooks;
 
     }
+    public static async createUserBook (ctx: BaseContext) {
+
+        const userRepository: Repository<User> = getManager().getRepository(User);
+
+        const bookRepository: Repository<Book> = getManager().getRepository(Book);
+        // build up entity book to be saved
+        const bookToBeSaved: Book = new Book();
+        bookToBeSaved.name = ctx.request.body.name;
+        bookToBeSaved.description = ctx.request.body.description;
+        bookToBeSaved.date = ctx.request.body.date;
+        bookToBeSaved.user = ctx.params.id;
+
+        const errors: ValidationError[] = await validate(bookToBeSaved);
+
+        if (errors.length > 0) {
+
+            ctx.status = 400;
+            ctx.body = errors;
+        } else if(! await userRepository.findOne({ id: ctx.params.id}) ) {
+            ctx.status = 400;
+            ctx.body = 'This user doesn\'t in db ';
+        } else if ( await bookRepository.findOne({ name: bookToBeSaved.name}) ) {
+
+            ctx.status = 400;
+            ctx.body = 'This book already exit ';
+
+        } else {
+
+            const book = await bookRepository.save(bookToBeSaved);
+            ctx.status = 201;
+            ctx.body = book;
+        }
+    }
 }
