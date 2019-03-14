@@ -65,4 +65,89 @@ AVAILABLE ENDPOINTS BOOK
 |                    |                           |                                                                                                        |
 
 
+Usage
+-----
 
+## Get  
+
+`http://localhost:3000/users/1/books/`
+
+Response
+```json
+{
+    "id": 1,
+    "name": "Mary",
+    "email": "yashuk806@gmail.com",
+    "books": [
+        {
+            "id": 5,
+            "name": "Test",
+            "description": "is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+            "date": "2019-03-14"
+        },
+        {
+            "id": 6,
+            "name": "Test1",
+            "description": "t is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+            "date": "2019-12-25"
+        }
+    ]
+}
+
+```
+## POST 
+
+`http://localhost:3000/users/1/books/`
+
+Header Content-Type application/json
+
+```json
+{      
+   "name": "Test3",
+   "description": "is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+   "date": "2019-03-14"
+}
+```
+
+Response
+
+```json
+{
+    "name": "Test3",
+    "description": "is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+    "date": "2019-03-14",
+    "user": "1",
+    "id": 7
+}
+```
+
+## PUT 
+
+Header Content-Type application/json
+
+`http://localhost:3000/users/1/books/1`
+
+```json
+{
+    "name": "Test4",
+    "description": "is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+    "date": "2019-03-14",
+    "user": "1",
+    "id": 7
+}
+```
+
+Response
+```json
+{
+    "name": "Test4",
+    "description": "is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.",
+    "date": "2019-03-14",
+    "user": "1",
+    "id": 7
+}
+```
+
+## DELETE 
+
+`http://localhost:3000/users/1/books/1`
