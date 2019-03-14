@@ -1,6 +1,5 @@
 import { BaseContext } from 'koa';
-import { dateformat } from 'dateformat';
-import { getManager, Repository, Not, Equal } from 'typeorm';
+import { getManager, Repository } from 'typeorm';
 import { validate, ValidationError } from 'class-validator';
 import { User } from '../entity/user';
 import { Book } from '../entity/book';
@@ -24,7 +23,6 @@ export default class BookController {
         ctx.body = userBooks;
 
     }
-
     public static async createUserBook (ctx: BaseContext) {
 
         const userRepository: Repository<User> = getManager().getRepository(User);
@@ -34,7 +32,7 @@ export default class BookController {
         const bookToBeSaved: Book = new Book();
         bookToBeSaved.name = ctx.request.body.name;
         bookToBeSaved.description = ctx.request.body.description;
-        bookToBeSaved.date = ctx.request.body.date;
+        bookToBeSaved.date = ctx.request.body.date || new Date();
         bookToBeSaved.user = ctx.params.id;
 
         const errors: ValidationError[] = await validate(bookToBeSaved);
@@ -76,7 +74,7 @@ export default class BookController {
         bookToBeUpdated.id = bookUser.id;
         bookToBeUpdated.name = ctx.request.body.name;
         bookToBeUpdated.description = ctx.request.body.description;
-        bookToBeUpdated.date = ctx.request.body.date || dateformat(new Date(), 'yyyy-mm-dd');
+        bookToBeUpdated.date = ctx.request.body.date || new Date();
         bookToBeUpdated.user = ctx.params.userId;
 
         if ( !await bookRepository.findOne(bookToBeUpdated.id) ) {
@@ -92,6 +90,7 @@ export default class BookController {
             ctx.body = user;
         }
     }
+
     public static async deleteUserBook (ctx: BaseContext) {
 
         const bookRepository: Repository<Book> = getManager().getRepository(Book);
